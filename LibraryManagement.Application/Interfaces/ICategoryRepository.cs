@@ -1,4 +1,6 @@
 ﻿using Library_Management_System.LibraryManagement.Core.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LibraryManagement.Application.Interfaces
 {
@@ -9,5 +11,6 @@ namespace LibraryManagement.Application.Interfaces
         Task AddAsync(Category category);
         Task UpdateAsync(Category category);
         Task DeleteAsync(int id);
+        Task<bool> ExistsByNameAsync(string name);
     }
 }

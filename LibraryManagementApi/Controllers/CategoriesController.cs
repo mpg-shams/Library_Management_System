@@ -1,34 +1,25 @@
 ﻿using Library_Management_System.LibraryManagement.Core.Entities;
-using Library_Management_System.LibraryManagement.Infrastructure.Data;
+using LibraryManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
-namespace Library_Management_System.LibraryManagementApi.Controllers
+namespace LibraryManagementApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly LibraryDbContext _context;
+        private readonly ICategoryRepository _repo;
 
-        public CategoriesController(LibraryDbContext context) => _context = context;
+        public CategoriesController(ICategoryRepository repo) => _repo = repo;
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> Get()
-            => await _context.Categories
-                .Include(c => c.Books)
-                .ThenInclude(b => b.Author)
-                .OrderBy(c => c.Name)
-                .ToListAsync();
+            => Ok(await _repo.GetAllAsync());
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> Get(int id)
         {
-            var category = await _context.Categories
-                .Include(c => c.Books)
-                .ThenInclude(b => b.Author)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
+            var category = await _repo.GetByIdAsync(id);
             return category == null ? NotFound() : Ok(category);
         }
 
@@ -36,12 +27,13 @@ namespace Library_Management_System.LibraryManagementApi.Controllers
         public async Task<ActionResult<Category>> Post([FromBody] Category category)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (string.IsNullOrWhiteSpace(category.Name))
+                return BadRequest("Category name is required.");
 
-            if (await _context.Categories.AnyAsync(c => c.Name == category.Name))
+            if (await _repo.ExistsByNameAsync(category.Name))
                 return Conflict("A category with this name already exists.");
 
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
+            await _repo.AddAsync(category);
             return CreatedAtAction(nameof(Get), new { id = category.Id }, category);
         }
 
@@ -49,30 +41,29 @@ namespace Library_Management_System.LibraryManagementApi.Controllers
         public async Task<IActionResult> Put(int id, [FromBody] Category category)
         {
             if (id != category.Id || !ModelState.IsValid) return BadRequest();
+            if (string.IsNullOrWhiteSpace(category.Name))
+                return BadRequest("Category name is required.");
 
-            var existing = await _context.Categories.FindAsync(id);
+            var existing = await _repo.GetByIdAsync(id);
             if (existing == null) return NotFound();
 
-            if (existing.Name != category.Name &&
-                await _context.Categories.AnyAsync(c => c.Name == category.Name))
+            if (existing.Name != category.Name && await _repo.ExistsByNameAsync(category.Name))
                 return Conflict("The new name is already taken.");
 
             existing.Name = category.Name;
-            await _context.SaveChangesAsync();
+            await _repo.UpdateAsync(existing);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _repo.GetByIdAsync(id);
             if (category == null) return NotFound();
-
-            if (await _context.Books.AnyAsync(b => b.Categories.Any(c => c.Id == id)))
+            if (category.Books.Any())
                 return BadRequest("Cannot delete a category that contains books.");
 
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
+            await _repo.DeleteAsync(id);
             return NoContent();
         }
     }
