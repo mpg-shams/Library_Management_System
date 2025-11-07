@@ -1,4 +1,6 @@
-﻿namespace LibraryManagementApi.Models
+﻿using Library_Management_System.LibraryManagement.Core.Enums;
+
+namespace Library_Management_System.LibraryManagement.Core.Entities
 {
     public class BorrowRecord
     {

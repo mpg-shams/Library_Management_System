@@ -1,9 +1,10 @@
-﻿using LibraryManagementApi.Data;
-using LibraryManagementApi.Models;
+﻿using Library_Management_System.LibraryManagement.Core.Entities;
+using Library_Management_System.LibraryManagement.Core.Enums;
+using Library_Management_System.LibraryManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LibraryManagementApi.Controllers
+namespace Library_Management_System.LibraryManagementApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
