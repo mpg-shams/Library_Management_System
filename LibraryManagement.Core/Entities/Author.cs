@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LibraryManagementApi.Models
+namespace Library_Management_System.LibraryManagement.Core.Entities
 {
     public class Author
     {
