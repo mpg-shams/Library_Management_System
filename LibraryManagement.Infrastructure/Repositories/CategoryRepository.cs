@@ -50,7 +50,6 @@ namespace LibraryManagement.Infrastructure.Repositories
             }
         }
 
-        // ← اضافه کردن متد جدید برای رفع خطا
         public async Task<bool> ExistsByNameAsync(string name)
         {
             return await _context.Categories.AnyAsync(c => c.Name == name);
