@@ -1,38 +1,25 @@
 using Library_Management_System.LibraryManagement.Core.Entities;
-using Library_Management_System.LibraryManagement.Infrastructure.Data;
+using LibraryManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
-namespace Library_Management_System.LibraryManagementApi.Controllers
+namespace LibraryManagementApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class BooksController : ControllerBase
     {
-        private readonly LibraryDbContext _context;
+        private readonly IBookRepository _repo;
 
-        public BooksController(LibraryDbContext context)
-        {
-            _context = context;
-        }
+        public BooksController(IBookRepository repo) => _repo = repo;
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Book>>> Get()
-        {
-            return await _context.Books
-                .Include(b => b.Author)
-                .Include(b => b.Categories)
-                .ToListAsync();
-        }
+            => Ok(await _repo.GetAllAsync());
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Book>> Get(int id)
         {
-            var book = await _context.Books
-                .Include(b => b.Author)
-                .Include(b => b.Categories)
-                .FirstOrDefaultAsync(b => b.Id == id);
-
+            var book = await _repo.GetByIdAsync(id);
             return book == null ? NotFound() : Ok(book);
         }
 
@@ -40,16 +27,7 @@ namespace Library_Management_System.LibraryManagementApi.Controllers
         public async Task<ActionResult<Book>> Post([FromBody] Book book)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            if (!await _context.Authors.AnyAsync(a => a.Id == book.AuthorId))
-                return BadRequest("Invalid AuthorId.");
-
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
-
-            await _context.Entry(book).Reference(b => b.Author).LoadAsync();
-            await _context.Entry(book).Collection(b => b.Categories).LoadAsync();
-
+            await _repo.AddAsync(book);
             return CreatedAtAction(nameof(Get), new { id = book.Id }, book);
         }
 
@@ -57,29 +35,14 @@ namespace Library_Management_System.LibraryManagementApi.Controllers
         public async Task<IActionResult> Put(int id, [FromBody] Book book)
         {
             if (id != book.Id || !ModelState.IsValid) return BadRequest();
-
-            var existing = await _context.Books.FindAsync(id);
-            if (existing == null) return NotFound();
-
-            existing.Title = book.Title;
-            existing.ISBN = book.ISBN;
-            existing.PublishedDate = book.PublishedDate;
-            existing.Price = book.Price;
-            existing.Quantity = book.Quantity;
-            existing.AuthorId = book.AuthorId;
-
-            await _context.SaveChangesAsync();
+            await _repo.UpdateAsync(book);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            if (book == null) return NotFound();
-
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
+            await _repo.DeleteAsync(id);
             return NoContent();
         }
     }
