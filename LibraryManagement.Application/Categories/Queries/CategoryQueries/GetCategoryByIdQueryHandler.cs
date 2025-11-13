@@ -2,10 +2,9 @@
 using LibraryManagement.Application.Interfaces;
 using MediatR;
 
-namespace LibraryManagement.Application.Categories.Queries.GetCategoryById
+namespace LibraryManagement.Application.Categories.Queries.CategoriesQueries
 {
-    public class GetCategoryByIdQueryHandler
-        : IRequestHandler<GetCategoryByIdQuery, Category?>
+    public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery, Category?>
     {
         private readonly ICategoryRepository _repository;
 
@@ -14,9 +13,7 @@ namespace LibraryManagement.Application.Categories.Queries.GetCategoryById
             _repository = repository;
         }
 
-        public async Task<Category?> Handle(
-            GetCategoryByIdQuery request,
-            CancellationToken cancellationToken)
+        public async Task<Category?> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
         {
             return await _repository.GetByIdAsync(request.Id);
         }

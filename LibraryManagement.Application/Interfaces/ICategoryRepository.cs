@@ -6,10 +6,9 @@ namespace LibraryManagement.Application.Interfaces
     {
         Task<IEnumerable<Category>> GetAllAsync();
         Task<Category?> GetByIdAsync(int id);
-        Task<bool> ExistsByNameAsync(string name);
         void Add(Category category);
         void Update(Category category);
-        void Delete(Category category);
-        Task SaveChangesAsync();
+        void Delete(int id);
+        Task<bool> ExistsByNameAsync(string name);
     }
 }

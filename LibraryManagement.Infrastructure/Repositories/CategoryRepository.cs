@@ -28,12 +28,6 @@ namespace LibraryManagement.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<bool> ExistsByNameAsync(string name)
-        {
-            return await _context.Categories
-                .AnyAsync(c => c.Name == name);
-        }
-
         public void Add(Category category)
         {
             _context.Categories.Add(category);
@@ -41,17 +35,21 @@ namespace LibraryManagement.Infrastructure.Repositories
 
         public void Update(Category category)
         {
-            _context.Entry(category).State = EntityState.Modified;
+            _context.Categories.Update(category);
         }
 
-        public void Delete(Category category)
+        public void Delete(int id)
         {
-            _context.Categories.Remove(category);
+            var category = _context.Categories.Find(id);
+            if (category != null)
+            {
+                _context.Categories.Remove(category);
+            }
         }
 
-        public async Task SaveChangesAsync()
+        public async Task<bool> ExistsByNameAsync(string name)
         {
-            await _context.SaveChangesAsync();
+            return await _context.Categories.AnyAsync(c => c.Name == name);
         }
     }
 }

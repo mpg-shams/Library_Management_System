@@ -1,8 +1,8 @@
 ﻿using Library_Management_System.LibraryManagement.Infrastructure.Data;
-using LibraryManagement.Application.Categories.Queries.GetAllCategories;
 using LibraryManagement.Application.Interfaces;
 using LibraryManagement.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,11 +15,7 @@ builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 builder.Services.AddScoped<IBorrowRecordRepository, BorrowRecordRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-    cfg.RegisterServicesFromAssemblyContaining<GetAllCategoriesQuery>();
-});
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
