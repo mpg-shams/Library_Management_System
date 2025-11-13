@@ -15,7 +15,7 @@ namespace Library_Management_System.LibraryManagement.Core.Entities
         public DateTime BorrowDate { get; set; } = DateTime.Now;
 
         public DateTime? ReturnDate { get; set; }
-
+        public BorrowStatus Status { get; set; } = BorrowStatus.Active;
         public bool IsOverdue =>
         ReturnDate == null && BorrowDate.AddDays(BorrowConstants.DefaultBorrowPeriodDays) < DateTime.Now;
 
