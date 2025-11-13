@@ -1,5 +1,10 @@
 ﻿using Library_Management_System.LibraryManagement.Core.Entities;
-using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Application.Categories.Commands.CreateCategory;
+using LibraryManagement.Application.Categories.Commands.DeleteCategory;
+using LibraryManagement.Application.Categories.Commands.UpdateCategory;
+using LibraryManagement.Application.Categories.Queries.GetAllCategories;
+using LibraryManagement.Application.Categories.Queries.GetCategoryById;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagementApi.Controllers
@@ -8,63 +13,96 @@ namespace LibraryManagementApi.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ICategoryRepository _repo;
+        private readonly IMediator _mediator;
 
-        public CategoriesController(ICategoryRepository repo) => _repo = repo;
+        public CategoriesController(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> Get()
-            => Ok(await _repo.GetAllAsync());
+        public async Task<ActionResult<IEnumerable<Category>>> GetAll()
+        {
+            var categories = await _mediator.Send(new GetAllCategoriesQuery());
+            return Ok(categories);
+        }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> Get(int id)
+        public async Task<ActionResult<Category>> GetById(int id)
         {
-            var category = await _repo.GetByIdAsync(id);
-            return category == null ? NotFound() : Ok(category);
+            var category = await _mediator.Send(new GetCategoryByIdQuery { Id = id });
+
+            if (category == null)
+                return NotFound($"Category with ID {id} not found.");
+
+            return Ok(category);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Category>> Post([FromBody] Category category)
+        public async Task<ActionResult<Category>> Create(
+            [FromBody] CreateCategoryCommand command)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            if (string.IsNullOrWhiteSpace(category.Name))
-                return BadRequest("Category name is required.");
-
-            if (await _repo.ExistsByNameAsync(category.Name))
-                return Conflict("A category with this name already exists.");
-
-            await _repo.AddAsync(category);
-            return CreatedAtAction(nameof(Get), new { id = category.Id }, category);
+            try
+            {
+                var category = await _mediator.Send(command);
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = category.Id },
+                    category);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Category category)
+        public async Task<IActionResult> Update(
+            int id,
+            [FromBody] UpdateCategoryCommand command)
         {
-            if (id != category.Id || !ModelState.IsValid) return BadRequest();
-            if (string.IsNullOrWhiteSpace(category.Name))
-                return BadRequest("Category name is required.");
+            if (id != command.Id)
+                return BadRequest("ID mismatch.");
 
-            var existing = await _repo.GetByIdAsync(id);
-            if (existing == null) return NotFound();
-
-            if (existing.Name != category.Name && await _repo.ExistsByNameAsync(category.Name))
-                return Conflict("The new name is already taken.");
-
-            existing.Name = category.Name;
-            await _repo.UpdateAsync(existing);
-            return NoContent();
+            try
+            {
+                await _mediator.Send(command);
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var category = await _repo.GetByIdAsync(id);
-            if (category == null) return NotFound();
-            if (category.Books.Any())
-                return BadRequest("Cannot delete a category that contains books.");
-
-            await _repo.DeleteAsync(id);
-            return NoContent();
+            try
+            {
+                await _mediator.Send(new DeleteCategoryCommand { Id = id });
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
