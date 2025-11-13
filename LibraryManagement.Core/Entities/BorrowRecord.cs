@@ -1,4 +1,5 @@
 ﻿using Library_Management_System.LibraryManagement.Core.Enums;
+using Library_Management_System.LibraryManagement.Core.Constants;
 
 namespace Library_Management_System.LibraryManagement.Core.Entities
 {
@@ -15,8 +16,8 @@ namespace Library_Management_System.LibraryManagement.Core.Entities
 
         public DateTime? ReturnDate { get; set; }
 
-        public BorrowStatus Status { get; set; } = BorrowStatus.Active;
+        public bool IsOverdue =>
+        ReturnDate == null && BorrowDate.AddDays(BorrowConstants.DefaultBorrowPeriodDays) < DateTime.Now;
 
-        public bool IsOverdue => ReturnDate == null && BorrowDate.AddDays(14) < DateTime.Now;
     }
 }
