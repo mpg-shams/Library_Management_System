@@ -1,6 +1,6 @@
 ﻿using Library_Management_System.LibraryManagement.Core.Entities;
 
-namespace LibraryManagement.Application.Interfaces
+namespace LibraryManagement.Application.IRepositories
 {
     public interface IBookRepository
     {

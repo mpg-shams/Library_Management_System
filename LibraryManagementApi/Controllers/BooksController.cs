@@ -1,5 +1,5 @@
 using Library_Management_System.LibraryManagement.Core.Entities;
-using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Application.IRepositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagementApi.Controllers

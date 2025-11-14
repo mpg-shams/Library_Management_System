@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace LibraryManagement.Application.Interfaces
+namespace LibraryManagement.Application.IRepositories
 {
     public interface ICategoryRepository
     {
