@@ -1,6 +1,6 @@
 ﻿using Library_Management_System.LibraryManagement.Core.Entities;
 using Library_Management_System.LibraryManagement.Infrastructure.Data;
-using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Application.IRepositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagement.Infrastructure.Repositories

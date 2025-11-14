@@ -1,6 +1,6 @@
 ﻿using Library_Management_System.LibraryManagement.Core.Entities;
 using Library_Management_System.LibraryManagement.Infrastructure.Data;
-using LibraryManagement.Application.Interfaces;
+using LibraryManagement.Application.IRepositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagement.Infrastructure.Repositories
@@ -22,16 +22,16 @@ namespace LibraryManagement.Infrastructure.Repositories
                 .ThenInclude(b => b!.Author)
                 .FirstOrDefaultAsync(br => br.Id == id);
 
-        public async Task AddAsync(BorrowRecord record)
+        public Task AddAsync(BorrowRecord borrowRecord)
         {
-            _context.BorrowRecords.Add(record);
-            await _context.SaveChangesAsync();
+            _context.BorrowRecords.Add(borrowRecord);
+            return Task.CompletedTask;
         }
 
-        public async Task UpdateAsync(BorrowRecord record)
+        public Task UpdateAsync(BorrowRecord borrowRecord)
         {
-            _context.Update(record);
-            await _context.SaveChangesAsync();
+            _context.BorrowRecords.Update(borrowRecord);
+            return Task.CompletedTask;
         }
 
         public async Task DeleteAsync(int id)
@@ -40,7 +40,6 @@ namespace LibraryManagement.Infrastructure.Repositories
             if (record != null)
             {
                 _context.BorrowRecords.Remove(record);
-                await _context.SaveChangesAsync();
             }
         }
 
