@@ -5,6 +5,7 @@ using LibraryManagement.Application.Services;
 using LibraryManagement.Infrastructure;
 using LibraryManagement.Infrastructure.Interfaces;
 using LibraryManagement.Infrastructure.Repositories;
+using LibraryManagementApi.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
