@@ -20,16 +20,16 @@ namespace LibraryManagement.Infrastructure.Repositories
                 .Include(a => a.Books)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
-        public async Task AddAsync(Author author)
+        public Task AddAsync(Author author)
         {
             _context.Authors.Add(author);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
-        public async Task UpdateAsync(Author author)
+        public Task UpdateAsync(Author author)
         {
-            _context.Update(author);
-            await _context.SaveChangesAsync();
+            _context.Authors.Update(author);
+            return Task.CompletedTask;
         }
 
         public async Task DeleteAsync(int id)
@@ -38,7 +38,6 @@ namespace LibraryManagement.Infrastructure.Repositories
             if (author != null)
             {
                 _context.Authors.Remove(author);
-                await _context.SaveChangesAsync();
             }
         }
     }
