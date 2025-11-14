@@ -28,16 +28,16 @@ namespace LibraryManagement.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task AddAsync(Category category)
+        public Task AddAsync(Category category)
         {
             _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
-        public async Task UpdateAsync(Category category)
+        public Task UpdateAsync(Category category)
         {
             _context.Categories.Update(category);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public async Task DeleteAsync(int id)
@@ -46,7 +46,6 @@ namespace LibraryManagement.Infrastructure.Repositories
             if (category != null)
             {
                 _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
             }
         }
 

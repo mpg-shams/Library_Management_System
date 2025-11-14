@@ -1,5 +1,5 @@
-﻿using Library_Management_System.LibraryManagement.Core.Entities;
-using LibraryManagement.Application.IRepositories;
+﻿using Library_Management_System.LibraryManagement.Application.DTOs;
+using LibraryManagement.Application.IServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagementApi.Controllers
@@ -8,62 +8,39 @@ namespace LibraryManagementApi.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ICategoryRepository _repo;
+        private readonly ICategoryService _service;
 
-        public CategoriesController(ICategoryRepository repo) => _repo = repo;
+        public CategoriesController(ICategoryService service) => _service = service;
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> Get()
-            => Ok(await _repo.GetAllAsync());
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> Get()
+            => Ok(await _service.GetAllAsync());
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> Get(int id)
+        public async Task<ActionResult<CategoryDto>> Get(int id)
         {
-            var category = await _repo.GetByIdAsync(id);
+            var category = await _service.GetByIdAsync(id);
             return category == null ? NotFound() : Ok(category);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Category>> Post([FromBody] Category category)
+        public async Task<ActionResult<CategoryDto>> Post([FromBody] CategoryDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            if (string.IsNullOrWhiteSpace(category.Name))
-                return BadRequest("Category name is required.");
-
-            if (await _repo.ExistsByNameAsync(category.Name))
-                return Conflict("A category with this name already exists.");
-
-            await _repo.AddAsync(category);
-            return CreatedAtAction(nameof(Get), new { id = category.Id }, category);
+            var created = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Category category)
+        public async Task<IActionResult> Put(int id, [FromBody] CategoryDto dto)
         {
-            if (id != category.Id || !ModelState.IsValid) return BadRequest();
-            if (string.IsNullOrWhiteSpace(category.Name))
-                return BadRequest("Category name is required.");
-
-            var existing = await _repo.GetByIdAsync(id);
-            if (existing == null) return NotFound();
-
-            if (existing.Name != category.Name && await _repo.ExistsByNameAsync(category.Name))
-                return Conflict("The new name is already taken.");
-
-            existing.Name = category.Name;
-            await _repo.UpdateAsync(existing);
+            await _service.UpdateAsync(id, dto);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var category = await _repo.GetByIdAsync(id);
-            if (category == null) return NotFound();
-            if (category.Books.Any())
-                return BadRequest("Cannot delete a category that contains books.");
-
-            await _repo.DeleteAsync(id);
+            await _service.DeleteAsync(id);
             return NoContent();
         }
     }
