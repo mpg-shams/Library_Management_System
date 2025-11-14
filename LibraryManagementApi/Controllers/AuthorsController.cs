@@ -1,5 +1,5 @@
-﻿using Library_Management_System.LibraryManagement.Core.Entities;
-using LibraryManagement.Application.IRepositories;
+﻿using Library_Management_System.LibraryManagement.Application.DTOs;
+using LibraryManagement.Application.IServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagementApi.Controllers
@@ -8,53 +8,39 @@ namespace LibraryManagementApi.Controllers
     [ApiController]
     public class AuthorsController : ControllerBase
     {
-        private readonly IAuthorRepository _repo;
+        private readonly IAuthorService _service;
 
-        public AuthorsController(IAuthorRepository repo) => _repo = repo;
+        public AuthorsController(IAuthorService service) => _service = service;
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Author>>> Get()
-            => Ok(await _repo.GetAllAsync());
+        public async Task<ActionResult<IEnumerable<AuthorDto>>> Get()
+            => Ok(await _service.GetAllAsync());
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Author>> Get(int id)
+        public async Task<ActionResult<AuthorDto>> Get(int id)
         {
-            var author = await _repo.GetByIdAsync(id);
+            var author = await _service.GetByIdAsync(id);
             return author == null ? NotFound() : Ok(author);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Author>> Post([FromBody] Author author)
+        public async Task<ActionResult<AuthorDto>> Post([FromBody] AuthorDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            if (string.IsNullOrWhiteSpace(author.Name))
-                return BadRequest("Author name is required.");
-
-            author.IsActive = true;
-            await _repo.AddAsync(author);
-            return CreatedAtAction(nameof(Get), new { id = author.Id }, author);
+            var created = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Author author)
+        public async Task<IActionResult> Put(int id, [FromBody] AuthorDto dto)
         {
-            if (id != author.Id || !ModelState.IsValid) return BadRequest();
-            if (string.IsNullOrWhiteSpace(author.Name))
-                return BadRequest("Author name is required.");
-
-            await _repo.UpdateAsync(author);
+            await _service.UpdateAsync(id, dto);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var author = await _repo.GetByIdAsync(id);
-            if (author == null) return NotFound();
-            if (author.Books.Any())
-                return BadRequest("Cannot delete author with existing books.");
-
-            await _repo.DeleteAsync(id);
+            await _service.DeleteAsync(id);
             return NoContent();
         }
     }
